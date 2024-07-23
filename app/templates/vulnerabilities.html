@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+<head>
+    {% block title %} BOMSkope - Vulnerabilities {% endblock %}
+</head>
+
+{% block content %}
+
+<!-- Include jQuery -->
+<script src="https://code.jquery.com/jquery-3.5.1.js" integrity="sha384-/LjQZzcpTzaYn7qWqRIWYC5l8FWEZ2bIHIz0D73Uzba4pShEcdLdZyZkI4Kv676E" crossorigin="anonymous"></script>
+<!-- DataTables CSS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.11.3/css/jquery.dataTables.min.css" integrity="sha384-kKpyGTkmY+nYEkRda6qauvrYqFNO4csWTLspXM3FCJ89NsU9FhPY5kebmiPqu8B6" crossorigin="anonymous">
+<!-- DataTables JS -->
+<script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js" integrity="sha384-Ys7dhgZ13dNQE2uo7PY+FIKiwwu0WNSnKCAOPPNoC9KT+fW+OAh+Ym0z3eiREmpZ" crossorigin="anonymous"></script>
+
+<script>
+    $(document).ready(function () {
+        $('#vulnerabilitiesTable').DataTable({
+            "language": {
+                "search": "", // If you want to remove the 'Search:' label
+                "searchPlaceholder": "🔍 Search"
+            },
+            "order": [[1, 'asc']],
+            "responsive": true,
+            "stateSave": true
+        });
+    });
+</script>
+
+
+<h1 class="page_title">Vulnerabilities</h1>
+<br><br>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js" integrity="sha384-JUh163oCRItcbPme8pYnROHQMC6fNKTBWtRG3I3I0erJkzNgL7uxKlNwcrcFKeqF" crossorigin="anonymous"></script>
+
+
+<!-- Table -->
+<table class="display" id="vulnerabilitiesTable">
+    <thead>
+        <tr>
+            <th scope="col">Vendor</th>
+            <th scope="col">Name</th>
+            <th scope="col">Severity</th>
+            <th scope="col">CVE</th>
+            <th scope="col">CWE</th>
+            <th scope="col">CVSS Score</th>
+            <th scope="col">CVSS Type</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for vulnerability in vulnerabilities %}
+        <tr>
+            <td><a href="{{ url_for('vendor', vendor_id=vulnerability.vendor.id) }}" class="text-muted" style="text-decoration: none;">{{ vulnerability.vendor.name }}</a></td>
+            <td>
+                <a href="{{ url_for('vulnerability', vulnerability_id=vulnerability.id) }}">{{ vulnerability.name }}</a>
+            </td>
+            <td>{{ vulnerability.severity }}</td>
+            <td>{{ vulnerability.cve }}</td>
+            <td>{{ vulnerability.cwe }}</td>
+            <td>{{ vulnerability.cvss_score }}</td>
+            <td>{{ vulnerability.cvss_type }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+
+
+{% endblock %}

@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+<head>
+    {% block title %} BOMSkope {% endblock %}
+</head>
+{% block content %}
+<h1 class="page_title">Welcome, {{ user.name }}!</h1>
+<br><br>
+<div class="charts-container">
+    <canvas id="vendorsChart" height="80"></canvas>
+    <canvas id="vulnerabilitiesChart" height="80"></canvas>
+</div>
+<style>
+    .charts-container {
+        min-width: 600px;
+    }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js" integrity="sha384-JUh163oCRItcbPme8pYnROHQMC6fNKTBWtRG3I3I0erJkzNgL7uxKlNwcrcFKeqF" crossorigin="anonymous"></script>
+<script type="text/javascript">
+    // Code for the vendors chart
+    const vendorsCtx = document.getElementById('vendorsChart');
+
+    new Chart(vendorsCtx, {
+        type: 'line',
+        data: {
+            labels: ['', '', '', '', ''],
+            datasets: [{
+                label: '',
+                data: {{ weekly_vendors }},
+                borderWidth: 3,
+                borderColor: 'rgb(71, 76, 97, 0.5)',
+            }]
+        },
+        options: {
+            responsive: true,
+            animation: {
+                duration: 1500,
+                easing: 'easeInOutQuart',
+            },
+            scales: {
+                y: {
+                    display: false
+                }
+            },
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Vendors',
+                    font: {
+                        size: 20
+                    }
+                },
+                legend: {
+                    display: false
+                }
+            },
+            tooltips: {
+                enabled: false
+            }
+        }
+    });
+
+    // Code for the vulnerabilities chart
+    const vulnerabilitiesCtx = document.getElementById('vulnerabilitiesChart');
+
+    new Chart(vulnerabilitiesCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Low', 'Medium', 'High', 'Critical'],
+            datasets: [{
+                label: 'Vulnerabilities',
+                data: {{ vulnerabilities }},
+                backgroundColor: ['rgba(255, 206, 86, 0.8)', 'rgba(54, 162, 235, 0.8)', 'rgba(255, 99, 132, 0.8)', 'rgba(235, 64, 52, 0.8)'],
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Vulnerabilities',
+                    font: {
+                        size: 20
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

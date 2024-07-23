@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+
+    <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.png') }}">
+
+    <style>
+        .video-background {
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            min-width: 100%; 
+            min-height: 100%;
+            z-index: -1;
+        }
+        .container {
+            min-height: 100vh; /* Full height */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .form-signin {
+            width: 100%;
+            max-width: 400px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.8); /* Optional: for better visibility */
+            border-radius: 10px; /* Optional: for styled corners */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05); /* Optional: for a subtle shadow */
+        }
+        .alert-overlay {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1050;
+            opacity: 0; /* Start invisible */
+            width: auto;
+            max-width: 90%;
+            transition: opacity 0.5s ease; /* Smooth transition for the opacity */
+        }
+        
+        /* Class to make the alert visible */
+        .fade-in {
+            opacity: 0.9; /* Final opacity for visible state */
+        }
+    </style>
+
+    <title>BOMSkope - Login</title>
+  </head>
+  <body>   
+    {% with messages = get_flashed_messages(with_categories=True) %}
+        {% if messages %}
+        {% for category,message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show alert-overlay" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+    {% block content %}{% endblock %}
+    
+    <div class="container">
+        <form class="form-signin" action="{{ url_for('login_user') }}" method="POST">
+            <h1 class="h3 mb-3 font-weight-normal text-center">Please sign in</h1>
+            <label for="email" class="sr-only">Email address</label>
+            <input type="text" name="email" class="form-control mb-2" placeholder="Email address" required autofocus>
+            <label for="password" class="sr-only">Password</label>
+            <input type="password" name="password" class="form-control mb-2" placeholder="Password" required autofocus><br>
+            <div class="d-flex justify-content-front">
+                <input class="btn btn-block btn-primary w-100" style="margin-bottom: 5px;" type="submit" value="Login">
+            </div>
+            <button class="btn btn-outline-primary w-100" type="button" id="loginWithSsoButton">Login with SSO</button>
+            <br><br>
+            <div>Need an account? Register <a style="color: orange" href="{{ url_for('register') }}">here</a>.</div>
+            <input type="hidden" name="csrf_token" value = "{{ csrf_token() }}" />
+        </form>
+    </div>
+
+    <!-- The HTML5 video element that will create the background video on the header -->
+    <video autoplay muted loop class="video-background">
+        <source src="{{ url_for('static', filename='videos/background.mp4') }}" type="video/mp4">
+        Your browser does not support HTML5 video.
+    </video>
+        
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('loginWithSsoButton').addEventListener('click', function() {
+                window.location.href = '/sso-login'; // Replace '/path-to-sso-login' with the actual URL
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach((alert) => {
+                // Initially, fade in
+                setTimeout(() => {
+                    alert.classList.add('fade-in');
+                }, 100); // Short delay before fade in starts
+        
+                // Then, fade out after some time
+                setTimeout(() => {
+                    alert.classList.remove('fade-in');
+                    alert.classList.add('fade-out');
+        
+                    // Wait for the fade-out to finish before removing the alert
+                    alert.addEventListener('transitionend', () => {
+                        alert.remove(); // Use .remove() to take it out of the document flow
+                    });
+                }, 4000); // Adjust timing as needed
+            });
+        });
+    </script>  
+        
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js" integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+" crossorigin="anonymous"></script> !-->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+
+  </body>
+</html>
