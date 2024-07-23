@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+<head>
+    {% block title %} BOMSkope - User Management {% endblock %}
+</head>
+{% block content %}
+    <h1 class="page_title">Pending Users</h1>
+    <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Email</th>
+            <th scope="col">Accept/Reject</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for pending_user in pending_users %}
+            <tr>
+                <td>{{ pending_user['name'] }}</td>
+                <td>{{ pending_user['email'] }}</td>
+                <td>
+                    <!-- Accept Form -->
+                    <form action="{{ url_for('manage_invited_users') }}" method="POST" style="display: inline;">
+                        <input type="hidden" name="action" value="accept">
+                        <input type="hidden" name="user" value="{{ pending_user['email'] }}">
+                        <button type="submit" class="btn" style="background-color: lightgreen; color: white; margin-right: 10px">Accept</button>
+                        <input type="hidden" name="csrf_token" value = "{{ csrf_token() }}" />
+                    </form>
+                    <!-- Reject Form -->
+                    <form action="{{ url_for('manage_invited_users') }}" method="POST" style="display: inline;">
+                        <input type="hidden" name="action" value="reject">
+                        <input type="hidden" name="user" value="{{ pending_user['email'] }}">
+                        <button type="submit" class="btn" style="background-color: red; color: white">Reject</button>
+                        <input type="hidden" name="csrf_token" value = "{{ csrf_token() }}" />
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+            
+        </tbody>
+      </table>
+    <br><br>
+    <h1 class="page_title">Manage Users</h1>
+    <form action="{{ url_for('manage_user_roles') }}" method="post">
+      <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">Name</th>
+              <th scope="col">Email</th>
+              <th scope="col">Role</th>
+              <th scope="col">SSO User?</th>
+              <th scope="col">Reset Password</th>
+              <th scope="col">Delete User</th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for _user in all_users %}
+              <tr>
+                  <td>{{ _user['name'] }}</td>
+                  <td>{{ _user['email'] }}</td>
+                  <td>
+                    {% if _user['role'] == 'Super Admin' and user['role'] != 'Super Admin' %}
+                      <select class="form-select" name="role[{{ _user['id'] }}]" disabled>
+                        <option value="Super Admin" selected>Super Admin</option>
+                      </select>
+                      <input type="hidden" name="role[{{ _user['id'] }}]" value="Super Admin">
+                    {% elif _user['role'] == 'Super Admin' and user['role'] == 'Super Admin' %}
+                      <select class="form-select" name="role[{{ _user['id'] }}]">
+                        {% for role in roles %}
+                          <option value="{{ role }}">{{ role }}</option>
+                        {% endfor %}
+                        <option value="Super Admin" selected>Super Admin</option>
+                      </select>
+                    {% elif user['role'] == 'Super Admin' %}
+                      <select class="form-select" name="role[{{ _user['id'] }}]">
+                        {% for role in roles %}
+                          <option value="{{ role }}" {% if _user['role'] == role %}selected{% endif %}>{{ role }}</option>
+                        {% endfor %}
+                        <option value="Super Admin">Super Admin</option>
+                      </select>
+                    {% else %}
+                      <select class="form-select" name="role[{{ _user['id'] }}]">
+                        {% for role in roles %}
+                          <option value="{{ role }}" {% if _user['role'] == role %}selected{% endif %}>{{ role }}</option>
+                        {% endfor %}
+                      </select>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if _user['sso_user'] %}
+                      Yes
+                    {% else %}
+                      No
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if _user['role'] == 'Super Admin' and user['role'] != 'Super Admin' %}
+                      <button type="button" class="btn" data-bs-toggle="modal" data-bs-target="#resetPasswordModal{{ _user.id }}" style="background-color: lightblue; color: black; margin-right: 10px" disabled>Reset Password</button>
+                    {% elif _user['sso_user'] %}
+                      <button type="button" class="btn" data-bs-toggle="modal" data-bs-target="#resetPasswordModal{{ _user.id }}" style="background-color: lightblue; color: black; margin-right: 10px" disabled>Reset Password</button>
+                    {% else %}
+                      <button type="button" class="btn" data-bs-toggle="modal" data-bs-target="#resetPasswordModal{{ _user.id }}" style="background-color: lightblue; color: black; margin-right: 10px">Reset Password</button>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if _user['role'] == 'Super Admin' %}
+                      <button type="button" class="btn" style="background-color: red; color: white; margin-right: 10px" data-bs-toggle="modal" data-bs-target="#deleteUserModal{{ _user.id }}" disabled>Delete User</button>
+                    {% else %}
+                      <button type="button" class="btn" style="background-color: red; color: white; margin-right: 10px" data-bs-toggle="modal" data-bs-target="#deleteUserModal{{ _user.id }}">Delete User</button>
+                    {% endif %}
+                  </td>
+              </tr>
+              {% endfor %}
+          </tbody>
+        </table>
+        <input type="hidden" name="csrf_token" value = "{{ csrf_token() }}" />
+        <button type="submit" class="btn btn-primary">Save All Changes</button>
+    </form>
+    
+    {% for user in all_users %}
+    <!-- Modal -->
+    <div class="modal fade" id="resetPasswordModal{{ user.id }}" tabindex="-1" aria-labelledby="modalLabel{{ user.id }}" aria-hidden="true">
+        <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h5 class="modal-title" id="modalLabel{{ user.id }}">Reset Password for {{ user.name }}</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('reset_password') }}" method="POST">
+              <div class="modal-body">
+                  <!-- Hidden field to send user ID -->
+                  <input type="hidden" name="user_id" value="{{ user.id }}">
+                  <div class="mb-3">
+                  <label for="new-password{{ user.id }}" class="col-form-label">New Password:</label>
+                  <input type="password" class="form-control" id="new-password{{ user.id }}" name="new_password">
+                  </div>
+              </div>
+              <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                  <button type="submit" class="btn btn-primary">Reset Password</button>
+              </div>
+              <input type="hidden" name="csrf_token" value = "{{ csrf_token() }}" />
+            </form>
+        </div>
+        </div>
+    </div>
+    <div class="modal fade" id="deleteUserModal{{ user.id }}" tabindex="-1" aria-labelledby="deleteUserModalLabel{{ user.id }}" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="deleteUserModalLabel{{ user.id }}">Confirm Delete</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              Are you sure you want to delete {{ user.name }}?
+              {% if user.sso_user %}
+                <br><br><strong>Warning:</strong> This user is an SSO user and must also be deleted in the identity provider's platform.
+              {% endif %}
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <form action="{{ url_for('delete_user') }}" method="DELETE" style="display:inline;">
+                <input type="hidden" name="user_id" value="{{ user.id }}">
+                <button type="submit" class="btn btn-danger">Delete</button>
+                <input type="hidden" name="csrf_token" value = "{{ csrf_token() }}" />
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+<head>
+    {% block title %} BOMSkope - SSO Setup {% endblock %}
+</head>
+{% block content %}
+<div>
+    <h1 class="page_title">Settings</h1>
+    <hr><br>
+    <h4 class="text-muted">Integrations</h4>
+    <br>
+    <h5><img src="{{ url_for('static', filename='images/bitsight_vrm.svg') }}"> BitSight VRM (ThirdPartyTrust)</h5>
+    <br>
+    <form action="{{ url_for('update_third_party_trust_integration') }}" method="POST">
+        <table class="table">
+            <tbody>
+                <tr>
+                    <th scope="row">API Key</th>
+                    <td><input type="text" class="form-control" name="api_key" placeholder="{{ '•' * BITSIGHT_API_KEY_LENGTH }}"></td>
+                </tr>
+                <tr>
+                    <th scope="row">Requirement Name for SBOM</th>
+                    <td><input type="text" class="form-control" name="requirement_name" value="{{ REQUIREMENT_NAME }}"></td>
+                </tr>
+            </tbody>
+        </table>
+        <!-- Buttons side-by-side -->
+        <div class="d-flex justify-content-start">
+            <button type="submit" class="btn btn-success btn-sm save-btn me-2">Save</button>
+        </div>
+        <input type="hidden" name="csrf_token" value = "{{ csrf_token() }}" />
+    </form>
+    <br><br>
+    <h5><img src="{{ url_for('static', filename='images/nist_nvd.png') }}"> NIST NVD</h5>
+    <br>
+    <form action="{{ url_for('update_nist_nvd_configuration') }}" method="POST">
+        <table class="table">
+            <tbody>
+                <tr>
+                    <th scope="row">API Key</th>
+                    <td><input type="text" class="form-control" name="api_key" placeholder="{{ '•' * NIST_API_KEY_LENGTH }}"></td>
+                </tr>
+            </tbody>
+        </table>
+        <!-- Buttons side-by-side -->
+        <div class="d-flex justify-content-start">
+            <button type="submit" class="btn btn-success btn-sm save-btn me-2">Save</button>
+        </div>
+        <input type="hidden" name="csrf_token" value = "{{ csrf_token() }}" />
+    </form>
+    
+    <br><hr><br>
+    <h4 class="text-muted">Logo</h4>
+    <br>
+    <form action="{{ url_for('update_logo') }}" method="POST" enctype="multipart/form-data">
+        <div class="mb-3">
+            <label for="formFile" class="form-label">Upload a new logo. Image must be a PNG file (W:550px, H:250px).</label>
+            <input class="form-control" type="file" id="formFile" name="logoFile" accept=".png">
+            <br>
+            <button type="submit" class="btn btn-sm save-btn me-2" style="background-color: orange; color: white; font-weight: bold;">Upload</button>
+        </div>
+        <input type="hidden" name="csrf_token" value = "{{ csrf_token() }}" />
+    </form> 
+</div>
+{% endblock %}

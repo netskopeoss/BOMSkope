@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+
+    <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.png') }}">
+
+    <style>
+        .sidebar {
+            width: 280px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            padding: 1rem 0;
+            background-color: #343a40;
+            z-index: 1;
+        }
+    
+        .sidebar a, .sidebar .nav-link {
+            color: #fff;
+            margin: 5px 15px; /* Reduced vertical margin for tighter spacing */
+            text-decoration: none;
+        }
+    
+        .sidebar .nav-link:hover {
+            background-color: #495057;
+        }
+
+        .brand-logo {
+            margin-right: 9px;
+        }
+
+        .btn-toggle-nav li {
+            margin-bottom: 3px; /* Adjust as necessary */
+        }
+
+        .dropdown-menu li {
+            width: 130px;
+        }
+    
+        .content {
+            margin-left: 280px;
+            padding: 50px 200px 50px 200px;
+        }
+    
+        .alert-overlay {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1050;
+            opacity: 0; /* Start invisible */
+            transition: opacity 0.5s ease; /* Smooth transition for the opacity */
+        }
+    
+        /* Make the alert visible */
+        .fade-in {
+            opacity: 0.9; /* Final opacity for visible state */
+        }
+    
+        /* Custom styles for admin dropdown */
+        #admin-submenu .btn-toggle-nav {
+            padding-left: 0; /* Aligns dropdown items with "Admin" text */
+        }
+    
+        #admin-submenu .btn-toggle-nav li a {
+            margin-left: 30px; /* Matches alignment of other nav links */
+        }
+    </style>
+    
+    
+
+    <title>{% block title %}{% endblock %}</title>
+</head>
+
+<body>
+    <div class="sidebar d-flex flex-column flex-shrink-0 p-3 text-bg-dark">
+        <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
+            <img src="{{ url_for('static', filename='images/logo_icon.png') }}" height="21" class="d-inline-block align-middle brand-logo" alt="Brand Logo">
+            <span class="fs-4">BOMSkope</span>
+        </a>
+        <hr>
+        <ul class="nav nav-pills flex-column mb-auto">
+            <li class="nav-item">
+                <a href="{{ url_for('vendors') }}" class="nav-link text-white" aria-current="page">
+                    <svg xmlns="https://www.w3.org/2000/svg" class="me-2" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="20.5" r="1"/><circle cx="18" cy="20.5" r="1"/><path d="M2.5 2.5h3l2.7 12.4a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.6l1.6-8.4H7.1"/></svg>
+                    Vendors
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('components') }}" class="nav-link text-white">
+                    <svg xmlns="https://www.w3.org/2000/svg" class="me-2" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>
+                    Components
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('vulnerabilities') }}" class="nav-link text-white">
+                    <svg xmlns="https://www.w3.org/2000/svg" class="me-2" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h18v18H3zM21 9H3M21 15H3M12 3v18"/></svg>
+                    Vulnerabilities
+                </a            </a>
+            </li>
+            {% if user.role == 'Super Admin' or user.role == 'Admin' %}
+            <li>
+                <a href="#" class="nav-link text-white" data-bs-toggle="collapse" data-bs-target="#admin-submenu">
+                    <svg xmlns="https://www.w3.org/2000/svg" class="me-2" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    Admin
+                    <svg xmlns="https://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="M6 9l6 6 6-6" />
+                            </svg>
+                </a>
+                <div class="collapse" id="admin-submenu">
+                    <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 medium">
+                        <li class="nav-item"><a href="{{ url_for('user_management') }}" class="link-light nav-link">User Management</a></li>
+                        <li><a href="{{ url_for('sso_setup') }}" class="link-light nav-link">SSO Setup</a></li>
+                        <li><a href="{{ url_for('settings') }}" class="link-light nav-link">Settings</a></li>
+                    </ul>
+                </div>
+                
+            </li>
+            {% endif %}
+        </ul>
+        <hr>
+        <div class="dropdown">
+            <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle " data-bs-toggle="dropdown" aria-expanded="false">
+                <strong>{{ user.name }}</strong>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-dark text-small shadow">
+                <li><a class="dropdown-item" href="{{ url_for('profile') }}">Profile</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="{{ url_for('logout') }}">Sign out</a></li>
+            </ul>
+        </div>
+    </div>
+    
+    
+
+    <div class="content">
+        {% with messages = get_flashed_messages(with_categories=True) %}
+        {% if messages %}
+        {% for category,message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show alert-overlay" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </div>
+    <!-- Optional JavaScript; choose one of the two! -->
+
+    <!-- Option 1: jQuery and Bootstrap Bundle (includes Popper) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+        crossorigin="anonymous"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const alerts = document.querySelectorAll('.alert-overlay');
+            alerts.forEach((alert) => {
+                // Initially, fade in
+                setTimeout(() => {
+                    alert.classList.add('fade-in');
+                }, 100); // Short delay before fade in starts
+
+                // Then, fade out after some time
+                setTimeout(() => {
+                    alert.style.opacity = 0;
+                    // Wait for the fade-out to finish before removing the alert
+                    alert.addEventListener('transitionend', () => {
+                        alert.remove(); // Use .remove() to take it out of the document flow
+                    });
+                }, 5000); // Adjust timing as needed
+            });
+        });
+    </script>
+</body>
+
+</html>

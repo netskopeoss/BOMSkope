@@ -1,0 +1,198 @@
+{% extends 'base.html' %}
+
+<head>
+    {% block title %} BOMSkope - Vendors {% endblock %}
+</head>
+
+{% block content %}
+
+<!-- Include jQuery -->
+<script src="https://code.jquery.com/jquery-3.5.1.js" integrity="sha384-/LjQZzcpTzaYn7qWqRIWYC5l8FWEZ2bIHIz0D73Uzba4pShEcdLdZyZkI4Kv676E" crossorigin="anonymous"></script>
+<!-- DataTables CSS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.11.3/css/jquery.dataTables.min.css" integrity="sha384-kKpyGTkmY+nYEkRda6qauvrYqFNO4csWTLspXM3FCJ89NsU9FhPY5kebmiPqu8B6" crossorigin="anonymous">
+<!-- DataTables JS -->
+<script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js" integrity="sha384-Ys7dhgZ13dNQE2uo7PY+FIKiwwu0WNSnKCAOPPNoC9KT+fW+OAh+Ym0z3eiREmpZ" crossorigin="anonymous"></script>
+
+<script>
+    $(document).ready(function () {
+        $('#vendorsTable').DataTable({
+            "columnDefs": [
+                { "orderable": false, "searchable": false, "targets": 2 }, // Disables sorting on the third column
+                { "searchable": false, "targets": 1 },
+                { "searchable": false, "targets": 3 } 
+            ],
+            "language": {
+                "search": "", // If you want to remove the 'Search:' label
+                "searchPlaceholder": "🔍 Search"
+            },
+            "lengthChange": false,
+            "buttons": ['copy', 'csv', 'excel', 'pdf', 'print'],
+            "responsive": true,
+            "stateSave": true
+        });
+    });
+</script>
+
+<style>
+.vendor-chart {
+    height: 50px;
+}
+</style>
+
+<h1 class="page_title">Vendors</h1>
+<br><br>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js" integrity="sha384-JUh163oCRItcbPme8pYnROHQMC6fNKTBWtRG3I3I0erJkzNgL7uxKlNwcrcFKeqF" crossorigin="anonymous"></script>
+
+<div class="modal fade" id="dynamicModal" tabindex="-1" aria-labelledby="dynamicModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="{{ url_for('add_vendor') }}" method="POST">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="dynamicModalLabel">Add a New Vendor</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <input type="text" class="form-control" id="name" name="name" placeholder="Vendor Name" required>
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="checked" name="checked" checked>
+                        <label class="form-check-label" for="checked">Vendor Active?</label>
+                    </div>
+                    
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success" id="confirmAddBtn">Add</button>
+                </div>
+                <input type="hidden" name="csrf_token" value = "{{ csrf_token() }}" />
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Table -->
+<table class="display" id="vendorsTable">
+    <thead>
+        <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Components</th>
+            <th scope='col'>Active</th>
+            <th scope="col">Vulnerabilities</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for vendor in vendors %}
+        <tr>
+            <!-- Form for Update and Delete -->
+            <td>
+                {% if vendor.active %}
+                    <a href="{{ url_for('vendor', vendor_id=vendor.id) }}">{{ vendor.name }}</a>
+                {% else %}
+                    <a href="{{ url_for('vendor', vendor_id=vendor.id) }}" class="text-muted" style="text-decoration: none;">{{ vendor.name }}</a>
+                {% endif %}
+            </td>
+            <td>{{ vendor.components | length }}</td>
+            <td>{{ vendor.active }}</td>
+            <td>
+                <canvas id="myChart-{{ vendor.id }}" class="vendor-chart"
+                            data-low="{{ vendor.low_severity|default(0, true) }}"
+                            data-medium="{{ vendor.medium_severity|default(0, true) }}"
+                            data-high="{{ vendor.high_severity|default(0, true) }}"
+                            data-critical="{{ vendor.critical_severity|default(0, true) }}" style="width: 100px;"></canvas>
+            
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<script>
+    let chartInstances = [];
+
+    document.addEventListener('DOMContentLoaded', function () {
+        initializeCharts();
+    });
+
+    function initializeCharts() {
+        document.querySelectorAll('.vendor-chart').forEach(function (canvas) {
+            const ctx = canvas.getContext('2d');
+            const low = canvas.getAttribute('data-low');
+            const medium = canvas.getAttribute('data-medium');
+            const high = canvas.getAttribute('data-high');
+            const critical = canvas.getAttribute('data-critical');
+
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: [''], // Single category for the horizontal bar
+                    datasets: [{
+                        label: 'Low',
+                        data: [low], // Example data for "Low" category
+                        backgroundColor: 'rgba(255, 206, 86, 0.6)',
+                    }, {
+                        label: 'Medium',
+                        data: [medium], // Example data for "Medium" category
+                        backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    }, {
+                        label: 'High',
+                        data: [high], // Example data for "High" category
+                        backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                    }, {
+                        label: 'Critical',
+                        data: [critical], // Example data for "Critical" category
+                        backgroundColor: 'rgba(235, 64, 52, 0.6)',
+                    }]
+                },
+                options: {
+                    indexAxis: 'y', // Horizontal bar
+                    scales: {
+                        x: {
+                            beginAtZero: true, // Start the X axis at 0
+                            stacked: true, // Enable stacking
+                            display: false, // Hide X axis labels and gridlines
+                        },
+                        y: {
+                            beginAtZero: true, // Start the Y axis at 0
+                            stacked: true, // Ensure bars are stacked
+                            display: false, // Hide Y axis labels and gridlines
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false, // Hide the legend
+                        },
+                        title: {
+                            display: false, // Hide the title
+                        }
+                    },
+                    maintainAspectRatio: true, // Allows custom chart size without maintaining aspect ratio
+                    responsive: false
+                }
+            });
+        });
+    }
+
+    $(document).ready(function() {
+        var table = $('#vendorsTable').DataTable();
+
+        table.on('draw', function() {
+            initializeCharts();
+        });
+
+        // Create and insert the button
+        var addVendorBtn = $('<button>').attr({
+            id: 'addVendorBtn',
+            class: 'btn btn-outline-primary me-2',
+            'data-bs-toggle': 'modal',
+            'data-bs-target': '#dynamicModal'
+        }).text('Add New Vendor');
+
+        addVendorBtn.insertBefore("div.dataTables_filter label");
+    });
+</script>
+
+{% endblock %}

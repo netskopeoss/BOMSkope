@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+<head>
+    {% block title %} BOMSkope - Profile {% endblock %}
+</head>
+
+{% block content %}
+<h1>Your Profile</h1>
+<br><br>
+<form action="{{ url_for('update_user_name') }}" method="POST">
+    <table class="table">
+        <tbody>
+            <tr>
+                <th scope="row">Name</th>
+                <td><input type="text" class="form-control" name="name" value="{{ user.name }}"></td>
+            </tr>
+        </tbody>
+    </table>
+    <!-- Buttons side-by-side -->
+    <div class="d-flex justify-content-start">
+        <button type="submit" class="btn btn-success btn-sm save-btn me-2">Update</button>
+    </div>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+</form>
+
+<br>
+<br>
+
+{% if user['sso_user'] == False %}
+<h5>Update Your Password</h5>
+<br>
+<button type="button" class="btn" data-bs-toggle="modal" data-bs-target="#resetPasswordModal{{ user.id }}"
+    style="background-color: lightblue; color: black; margin-right: 10px">Reset Password</button>
+{% endif %}
+
+<div class="modal fade" id="resetPasswordModal{{ user.id }}" tabindex="-1" aria-labelledby="modalLabel{{ user.id }}" aria-hidden="true">
+    <div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+        <h5 class="modal-title" id="modalLabel{{ user.id }}">Reset Password for {{ user.name }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form action="{{ url_for('reset_password') }}" method="POST">
+          <div class="modal-body">
+              <!-- Hidden field to send user ID -->
+              <input type="hidden" name="user_id" value="{{ user.id }}">
+              <div class="mb-3">
+              <label for="new-password{{ user.id }}" class="col-form-label">New Password:</label>
+              <input type="password" class="form-control" id="new-password{{ user.id }}" name="new_password">
+              </div>
+          </div>
+          <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+              <button type="submit" class="btn btn-primary">Reset Password</button>
+          </div>
+          <input type="hidden" name="csrf_token" value = "{{ csrf_token() }}" />
+        </form>
+    </div>
+    </div>
+</div>
+{% endblock %}

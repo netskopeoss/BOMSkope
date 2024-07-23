@@ -1,0 +1,78 @@
+geo $limit {
+    default 1;
+    10.0.0.0/8 0;
+    192.168.0.0/24 0;
+}
+ 
+map $limit $limit_key {
+    0 "";
+    1 $binary_remote_addr;
+}
+
+limit_req_zone $binary_remote_addr zone=user_register_zone:10m rate=2r/m;  # 1 request every 5 seconds
+
+# Define rate limiting zones for the base location
+limit_req_zone $binary_remote_addr zone=zone_4rps:10m rate=4r/s; # 4 per second
+limit_req_zone $binary_remote_addr zone=zone_10rps:10m rate=10r/s; # 10 per second
+limit_req_zone $binary_remote_addr zone=zone_1per5s:10m rate=12r/m;
+
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    server_name bomskope;
+
+    include snippets/self-signed.conf;
+    include snippets/ssl-params.conf;
+
+    access_log /var/log/nginx/bomskope.access.log;
+    error_log /var/log/nginx/bomskope.error.log;
+
+    client_body_timeout 5s;
+    client_header_timeout 5s;
+    
+    root /app;
+
+    add_header X-Frame-Options "SAMEORIGIN";
+    add_header Strict-Transport-Security "max-age=31536000; includeSubdomains; preload";
+    add_header Content-Security-Policy "default-src 'self' http: https: data: blob: 'unsafe-inline'" always;
+    add_header X-XSS-Protection "1; mode=block";
+
+    location / {
+        if ($request_method !~ ^(GET|HEAD|POST|PUT|DELETE)$ ) {
+            return 405; 
+        }
+
+        limit_except GET HEAD POST PUT DELETE { deny all; }
+
+        include proxy_params;
+        limit_req zone=zone_4rps burst=8 nodelay;
+        limit_req_log_level warn;
+        limit_req_status 429;  # HTTP 429 Too Many Requests
+        proxy_pass http://unix:/app/app.sock;
+    }
+    location = /api/internal/user/register {
+        limit_req zone=zone_1per5s burst=1 nodelay;
+        limit_req_log_level warn;
+        limit_req_status 429;  # HTTP 429 Too Many Requests
+	    proxy_pass http://unix:/app/app.sock;
+    }
+    location ~*/api/v1/* {
+        include proxy_params;
+        limit_req zone=zone_10rps burst=50 nodelay;
+        limit_req_log_level warn;
+        limit_req_status 429; # HTTP 429 Too Many Requests
+        proxy_pass http://unix:/app/app.sock;
+    }
+    location ~* \.(jpg|jpeg|png|gif|ico|svg)$ {
+        expires 30d;
+        add_header Cache-Control "public, no-transform";
+    }
+ 
+}
+server {
+    listen 80;
+
+    server_name bomskope;
+
+    return 301 https://bomskope$request_uri;
+}

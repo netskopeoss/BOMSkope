@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+<head>
+    {% block title %} BOMSkope - SSO Setup {% endblock %}
+</head>
+{% block content %}
+    <h1 class="page_title">SSO Setup</h1>
+    <br>
+    <i><span style="color: red;">*</span> OIDC is currently the only supported SSO method.</i>
+    <br><br>
+    <div>
+        <form action="{{ url_for('configure_sso') }}" method="POST">
+            <div class="mb-3">
+                <label for="providerDomain" class="form-label">Provider Domain</label>
+                <input type="text" class="form-control" id="providerDomain" name="PROVIDER_DOMAIN" value="{{ PROVIDER_DOMAIN }}">
+            </div>
+            <div class="mb-3">
+                <label for="clientId" class="form-label">Client ID</label>
+                <input type="text" class="form-control" id="clientId" name="CLIENT_ID" value="{{ CLIENT_ID }}">
+            </div>
+            <div class="mb-3">
+                <label for="clientSecret" class="form-label">Client Secret</label>
+                <input type="password" class="form-control" id="clientSecret" name="CLIENT_SECRET" placeholder="{{ '•' * CLIENT_SECRET_LENGTH }}">
+            </div>
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+            <input type="hidden" name="csrf_token" value = "{{ csrf_token() }}" />
+        </form>
+    </div>
+    
+{% endblock %}

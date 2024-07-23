@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+
+    <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.png') }}">
+
+    <style>
+        .video-background {
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            min-width: 100%; 
+            min-height: 100%;
+            z-index: -1;
+        }
+        .container {
+            min-height: 100vh; /* Full height */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .form-signin {
+            width: 100%;
+            max-width: 400px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.8); /* Optional: for better visibility */
+            border-radius: 10px; /* Optional: for styled corners */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05); /* Optional: for a subtle shadow */
+        }
+
+        .alert-overlay {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1050;
+            opacity: 0; /* Start invisible */
+            width: auto;
+            max-width: 90%;
+            transition: opacity 0.5s ease; /* Smooth transition for the opacity */
+        }
+        
+        /* Class to make the alert visible */
+        .fade-in {
+            opacity: 0.9; /* Final opacity for visible state */
+        }
+    </style>
+
+    <title>BOMSkope - Register</title>
+  </head>
+  <body>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach((alert) => {
+                // Initially, fade in
+                setTimeout(() => {
+                    alert.classList.add('fade-in');
+                }, 100); // Short delay before fade in starts
+        
+                // Then, fade out after some time
+                setTimeout(() => {
+                    alert.classList.remove('fade-in');
+                    alert.classList.add('fade-out');
+        
+                    // Wait for the fade-out to finish before removing the alert
+                    alert.addEventListener('transitionend', () => {
+                        alert.remove(); // Use .remove() to take it out of the document flow
+                    });
+                }, 4000); // Adjust timing as needed
+            });
+        });
+    </script>   
+    {% with messages = get_flashed_messages(with_categories=True) %}
+    {% if messages %}
+    {% for category,message in messages %}
+    <div class="alert alert-{{ category }} alert-dismissible fade show alert-overlay" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+    <div class="container">
+        <form class="form-signin" action="{{ url_for('signup_user') }}" method="POST">
+            <h1 class="h3 mb-3 font-weight-normal text-center">Register an Account</h1>
+            <label for="name" class="sr-only">Your Name</label>
+            <input type="text" name="name" class="form-control mb-2" placeholder="Name" required autofocus>
+            <label for="email" class="sr-only">Email address</label>
+            <input type="text" name="email" class="form-control mb-2" placeholder="Email address" required autofocus>
+            <label for="password" class="sr-only">Password</label>
+            <input type="password" id="password" name="password" class="form-control mb-2" placeholder="Password" required autofocus>
+            <input type="password" name="confirm_password" class="form-control mb-2" placeholder="Confirm Password" required autofocus><br>
+            <div id="message" class="alert alert-danger" style="display: none;">
+                <!-- Password requirements will be listed here -->
+            </div>
+            <div class="d-flex justify-content-front">
+                <input class="btn btn-lg btn-primary w-100" type="submit" value="Register">
+            </div>
+            <br>
+            <div>Back to <a style="color: orange" href="{{ url_for('login') }}">login</a>?</div>
+            <input type="hidden" name="csrf_token" value = "{{ csrf_token() }}" />
+        </form>
+    </div>
+    
+
+    <!-- The HTML5 video element that will create the background video on the header -->
+    <video autoplay muted loop class="video-background">
+        <source src="{{ url_for('static', filename='videos/background.mp4') }}" type="video/mp4">
+        Your browser does not support HTML5 video.
+    </video>
+        
+    <script>
+        let validationStarted = false; // Flag to track if validation timer has started
+
+        document.getElementById('password').oninput = function() {
+            validationStarted = true; // Set the flag to true
+
+            setTimeout(() => {
+                const password = this.value;
+                let message = "";
+                let isValid = true;
+            
+                if (password.length < 12) {
+                    message += "<p>Password must be 12+ characters long.</p>";
+                    isValid = false;
+                }
+                if (!/[A-Za-z]/.test(password)) {
+                    message += "<p>Password must include letters.</p>";
+                    isValid = false;
+                }
+                if (!/[0-9]/.test(password)) {
+                    message += "<p>Password must include numbers.</p>";
+                    isValid = false;
+                }
+                // Check for inclusion of capital letters
+                if (!/[A-Z]/.test(password)) {
+                    message += "<p>Password must include at least one capital letter.</p>";
+                    isValid = false;
+                }
+                // Check for inclusion of special characters
+                if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+                    message += "<p>Password must include at least one special character (e.g., !@#$%^&*).</p>";
+                    isValid = false;
+                }
+            
+                const messageElement = document.getElementById('message');
+                if (!isValid) {
+                    messageElement.innerHTML = message;
+                    messageElement.style.display = 'block';
+                } else {
+                    messageElement.style.display = 'none';
+                }
+
+                // Reset validation flag after checking
+                validationStarted = false;
+            }, 4000); // Wait for 5 seconds of inactivity before validating
+        };
+        
+        // Optional: Prevent form submission if the password is invalid
+        document.getElementById('loginForm').onsubmit = function(event) {
+            const messageElement = document.getElementById('message');
+            if (messageElement.style.display === 'block') {
+                event.preventDefault(); // Stop the form from submitting
+                alert("Please fix the password requirements.");
+            }
+        };
+    </script>
+        
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js" integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+" crossorigin="anonymous"></script> !-->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+
+  </body>
+</html>

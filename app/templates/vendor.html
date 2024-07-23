@@ -1,0 +1,240 @@
+{% extends 'base.html' %}
+
+<head>
+    {% block title %} BOMSkope - Vendor {% endblock %}
+</head>
+
+{% block content %}
+<!-- Include jQuery -->
+<script src="https://code.jquery.com/jquery-3.5.1.js" integrity="sha384-/LjQZzcpTzaYn7qWqRIWYC5l8FWEZ2bIHIz0D73Uzba4pShEcdLdZyZkI4Kv676E" crossorigin="anonymous"></script>
+<!-- DataTables CSS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.11.3/css/jquery.dataTables.min.css" integrity="sha384-kKpyGTkmY+nYEkRda6qauvrYqFNO4csWTLspXM3FCJ89NsU9FhPY5kebmiPqu8B6" crossorigin="anonymous">
+<!-- DataTables JS -->
+<script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js" integrity="sha384-Ys7dhgZ13dNQE2uo7PY+FIKiwwu0WNSnKCAOPPNoC9KT+fW+OAh+Ym0z3eiREmpZ" crossorigin="anonymous"></script>
+
+<script>
+    $(document).ready(function () {
+        $('#componentsTable').DataTable({
+            "language": {
+                "search": "", // If you want to remove the 'Search:' label
+                "searchPlaceholder": "🔍 Search"
+            }
+        });
+        $('#vulnerabilitiesTable').DataTable({
+            "language": {
+                "search": "", // If you want to remove the 'Search:' label
+                "searchPlaceholder": "🔍 Search"
+            }
+        });
+    });
+
+</script>
+
+<style>
+    .dataTables_wrapper td {
+        max-width: 200px;
+        /* Adjust the max-width as needed */
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+</style>
+
+
+<h1 class="page_title">{{ vendor.name }}</h1>
+<br><br>
+
+<div>
+    <!-- Nav tabs -->
+    <ul class="nav nav-tabs" id="myTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="components-tab" data-bs-toggle="tab" data-bs-target="#components"
+                type="button" role="tab" aria-controls="components" aria-selected="true">Components</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="vulnerabilities-tab" data-bs-toggle="tab" data-bs-target="#vulnerabilities"
+                type="button" role="tab" aria-controls="vulnerabilities" aria-selected="false">Vulnerabilities</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="manage-tab" data-bs-toggle="tab" data-bs-target="#manage" type="button"
+                role="tab" aria-controls="manage" aria-selected="false">Manage</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="upload-tab" data-bs-toggle="tab" data-bs-target="#upload" type="button"
+                role="tab" aria-controls="upload" aria-selected="false">Upload SBOM</button>
+        </li>
+    </ul>
+
+    <br><br>
+
+    <!-- Tab panes -->
+    <div class="tab-content">
+        <div class="tab-pane fade show active" id="components" role="tabpanel" aria-labelledby="components-tab">
+            <table class="display" id="componentsTable">
+                <thead>
+                    <tr>
+                        <th scope="col">Name</th>
+                        <th scope="col">Version</th>
+                        <th scope="col">License</th>
+                        <th scope="col">Package URL</th>
+                        <th scope="col">Hash</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for component in components %}
+                    <tr>
+                        <!-- Form for Update and Delete -->
+                        <td>
+                            <a href="{{ url_for('component', component_id=component.id) }}">{{ component.name }}</a>
+                        </td>
+                        <td>{{ component.version }}</td>
+                        <td>{{ component.license }}</td>
+                        <td>{{ component.package_url }}</td>
+                        <td>{{ component.hash }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="tab-pane fade" id="vulnerabilities" role="tabpanel" aria-labelledby="vulnerabilities-tab">
+            <table class="display" id="vulnerabilitiesTable">
+                <thead>
+                    <tr>
+                        <th scope="col">Name</th>
+                        <th scope="col">Severity</th>
+                        <th scope="col">CVE</th>
+                        <th scope="col">CWE</th>
+                        <th scope="col">CVSS Score</th>
+                        <th scope="col">CVSS Type</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for vulnerability in vulnerabilities %}
+                    <tr>
+                        <td>
+                            <a href="{{ url_for('vulnerability', vulnerability_id=vulnerability.id) }}">{{
+                                vulnerability.name }}</a>
+                        </td>
+                        <td>{{ vulnerability.severity }}</td>
+                        <td>{{ vulnerability.cve }}</td>
+                        <td>{{ vulnerability.cwe }}</td>
+                        <td>{{ vulnerability.cvss_score }}</td>
+                        <td>{{ vulnerability.cvss_type }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="tab-pane fade" id="manage" role="tabpanel" aria-labelledby="manage-tab">
+
+            <!-- Dynamic Modal for Deletion Confirmation -->
+            <div class="modal fade" id="dynamicDeletionModal" tabindex="-1" aria-labelledby="dynamicModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="dynamicModalLabel">Confirm Deletion</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            Are you sure you want to delete this vendor and <b>all</b> data associated with it?<br><br>
+
+                            This action <b>cannot</b> be undone.
+                        </div>
+                        <div class="modal-footer">
+                            <form action="{{ url_for('delete_vendor', vendor_id=vendor.id) }}" method="POST">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal fade" id="vendorDataDeletionModal" tabindex="-1" aria-labelledby="dynamicModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="dynamicModalLabel">Confirm Deletion</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            Are you sure you want to delete <b>all</b> data for this vendor?<br>
+                            This will delete all components and vulnerabilities associated with this vendor. The vendor
+                            itself will be kept.<br><br>
+
+                            This action <b>cannot</b> be undone.
+                        </div>
+                        <div class="modal-footer">
+                            <form action="{{ url_for('delete_vendor_data', vendor_id=vendor.id) }}" method="POST">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <form action="{{ url_for('update_vendor', vendor_id=vendor.id) }}" method="POST">
+                <table class="table">
+                    <tbody>
+                        <tr>
+                            <th scope="row">Name</th>
+                            <td><input type="text" class="form-control" name="name" value="{{ vendor.name }}"></td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Active</th>
+                            <td>
+                                <input type="checkbox" id="active" name="active" {{ 'checked' if vendor.active }}>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <!-- Buttons side-by-side -->
+                <div class="d-flex justify-content-start">
+                    <button type="submit" class="btn btn-success btn-sm save-btn me-2">Update</button>
+                </div>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            </form>
+            <br><br><br>
+            <h4>Actions</h4>
+            <br>
+            <button type="button" class="btn btn-danger btn-sm delete-btn" data-bs-toggle="modal"
+                data-bs-target="#vendorDataDeletionModal" data-vendor-id="{{ vendor.id }}">
+                Delete All Data
+            </button>
+            <br><br>
+            <button type="button" class="btn btn-danger btn-sm delete-btn" data-bs-toggle="modal"
+                        data-bs-target="#dynamicDeletionModal" data-vendor-id="{{ vendor.id }}" style="background-color: #730800; border-color: #260300;">
+                        Delete Vendor
+            </button>
+            <br><br>
+            <form action="{{ url_for('force_vulnerability_scan', vendor_id=vendor.id) }}" method="POST">
+                <!-- Buttons side-by-side -->
+                <div class="d-flex justify-content-start">
+                    <button type="submit" class="btn btn-primary btn-sm save-btn me-2">Force Vulnerability Scan</button>
+                </div>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            </form>
+        </div>
+        <div class="tab-pane fade" id="upload" role="tabpanel" aria-labelledby="upload-tab">
+            <form action="{{ url_for('upload_sbom') }}" method="POST" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <input type="text" name="vendor_id" id="vendor_id" value="{{ vendor.id }}" hidden>
+                    <label for="formFile" class="form-label">Select your SBOM file.</label>
+                    <input class="form-control" type="file" id="formFile" name="sbomFile" accept=".json,.xml,.spdx">
+                    <br>
+                    <button type="submit" class="btn"
+                        style="background-color: orange; color: white; font-weight: bold;">Upload</button>
+                </div>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            </form>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
