@@ -1287,7 +1287,7 @@ def process_upload_sbom(request, vendor_id):
             try:
                 spdxDoc = parse_file(doc)
                 validate = validate_full_spdx_document(spdxDoc)
-                validate['ValidationContext']
+                #validate['ValidationContext']
                 check['status'] = "Success"
                 check['message'] = "SPDX format detected"
                 return (check)
