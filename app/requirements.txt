@@ -43,7 +43,7 @@ tzlocal==5.2
 uritools==4.0.2
 urllib3==2.2.2
 uuid==1.30
-Werkzeug==3.0.3
+Werkzeug==3.0.6
 WTForms==3.1.2
 xmltodict==0.13.0
 zope.interface==6.1
