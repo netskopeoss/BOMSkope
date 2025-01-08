@@ -16,7 +16,7 @@ Flask-WTF==1.2.1
 idna==3.7
 isodate==0.6.1
 itsdangerous==2.1.2
-Jinja2==3.1.4
+Jinja2==3.1.5
 jsonpath-ng==1.6.1
 license-expression==30.3.0
 MarkupSafe==2.1.4
