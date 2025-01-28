@@ -27,7 +27,7 @@ COPY app /app/
 
 WORKDIR /app
 
-RUN curl -k -L -o /app/cyclonedx-linux-x64 https://github.com/CycloneDX/cyclonedx-cli/releases/download/v0.25.1/cyclonedx-linux-x64
+RUN curl -k -L -o /app/cyclonedx-linux-x64 https://github.com/CycloneDX/cyclonedx-cli/releases/download/v0.27.2/cyclonedx-linux-x64
 
 # Mark the file as executable
 RUN chmod +x /app/cyclonedx-linux-x64
