@@ -10,7 +10,7 @@ BOMSkope is a Software Bill of Materials (SBOM) manager that streamlines compone
 
 1. Ensure you have a supported SQLAlchemy database installed: [Features - SQLAlchemy](https://www.sqlalchemy.org/features.html).
 2. Download your appropriate CycloneDX binary into the `app/` directory and mark it as executable: https://github.com/CycloneDX/cyclonedx-cli/releases/.
-    1. *BOMSkope has been tested and confirmed to work with version 0.25.0.*
+    1. *BOMSkope has been tested and confirmed to work with version 0.25.0 and 0.27.2*
 3. If you are utilizing MacOS, run the following command to download the libicu library: `brew install icu4c`
 
 <br>
@@ -25,7 +25,7 @@ BOMSkope is a Software Bill of Materials (SBOM) manager that streamlines compone
 If you are running BOMSkope on an Arm-based device, please follow the steps below:
 
 1. Navigate to the `Dockerfile`.
-2. On line 29, update the curl command to: `RUN curl -k -L -o /app/cyclonedx-linux-x64 https://github.com/CycloneDX/cyclonedx-cli/releases/download/v0.25.1/cyclonedx-linux-arm64`.
+2. On line 29, update the curl command to: `RUN curl -k -L -o /app/cyclonedx-linux-x64 https://github.com/CycloneDX/cyclonedx-cli/releases/download/v0.27.2/cyclonedx-linux-arm64`.
 
 <br>
 
